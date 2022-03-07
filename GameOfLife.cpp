@@ -1,3 +1,8 @@
+/*
+Created by Oscar Bergström.
+Last edited 0222-03-07.
+*/
+
 #include <iostream>
 #include <time.h>
 
