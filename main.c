@@ -1,6 +1,6 @@
 /*
 	Created by Oscar Bergström.
-	Last edited 2022-07-19.
+	Last edited 2022-07-21.
 */
 
 #include <stdlib.h>
