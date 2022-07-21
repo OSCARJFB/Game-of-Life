@@ -5,7 +5,6 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
-#include <time.h>
 #include "raylib.h"
 
 // Definition of life death .. and unofficial midstates. 
