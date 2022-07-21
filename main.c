@@ -1,7 +1,6 @@
 /*
 	Created by Oscar Bergström.
 	Last edited 2022-07-19.
-    Press f5 to run. 
 */
 
 #include <stdlib.h>
@@ -27,7 +26,6 @@ void startUpMode(char[X][Y]);
 void drawGrid(char[X][Y]);
 
 int main() {
-    
     // Set initial screen size and title. 
     const int width = 1920, heigth = 1080;
     const char* title = "Game of Life";
@@ -42,23 +40,12 @@ int main() {
 
     char grid[X][Y];
 
-	// Set state of all cells to dead.
-	for (int i = 0; i < X; i++)
-		for (int n = 0; n < Y; n++) grid[i][n] = DEAD;
-    
-    /*
-    srand(time(NULL));
-	int x, y;
-	for (int i = 0; i < 100; i++) {
-		x = rand() % 90 + 10;
-		y = rand() % 40 + 10;
-		grid[y][x] = LIVING;
-	}
-    */
+    // Set state of all cells to dead.
+    for (int i = 0; i < X; i++)
+        for (int n = 0; n < Y; n++) grid[i][n] = DEAD;
 
     // Loop until close button/ESC button has been pressed.
-    while (!WindowShouldClose()) 
-    {
+    while (!WindowShouldClose()) {
         // Draw graphics. 
         BeginDrawing();
         
@@ -157,9 +144,10 @@ bool populate (char grid[X][Y], int y, int x) {
 }
 
 void drawGrid(char grid[X][Y]) {
-    int posX = 0, posY = 0; 
-    const int width = 10, heigth = 10; 
+    int posX = 0, posY = 0; 		// Square posistion.
+    const int width = 10, heigth = 10;  // Square size. 
     
+    // Draw squares, with color dependant of game state(DEAD/LIVING). 	
     for(int i = 0; i < X; ++i) {
         for(int j = 0; j < Y; ++j) {
             if(grid[i][j] == LIVING)
@@ -175,6 +163,7 @@ void drawGrid(char grid[X][Y]) {
     return;
 }
 
+// This function is not in use yet!
 void startUpMode(char grid[X][Y]) {
     int posX = 0, posY = 0;
     const int width = 10, heigth = 10; 
