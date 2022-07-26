@@ -1,7 +1,7 @@
 /*
-	Created by Oscar Bergström.
-	Last edited 2022-07-23.
-*/
+ *	Created by Oscar Bergström.
+ *	Last edited 2022-07-26.
+ */
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -13,6 +13,9 @@
 #define LIVING 'O'
 #define DYING 'x'
 #define DEAD ' '
+// Timer definitions.
+#define CONERT_TO_MS 1000
+#define TIME_ELAPSED 120000
 
 // This correspond to a grid of 1920x1080. 
 #define X 198 // 198 * 10 = 1920
@@ -21,8 +24,10 @@
 bool underPopulation(char[X][Y], int, int);
 bool overPopulation(char[X][Y], int, int);
 bool populate(char[X][Y], int, int);
+void startState(char[X][Y]);
 void drawGrid(char[X][Y]);
-void setStartStage(char[X][Y]);
+void endState(char[X][Y]);
+long setStartStage(char[X][Y]);
 void glider(char[X][Y]);
 void blinker(char[X][Y]);
 void pattern_one(char[X][Y]);
@@ -32,54 +37,45 @@ int main() {
     // Set initial screen size and title. 
     const int width = 1920, heigth = 1080;
     const char* title = "Game of Life";
+    
+    // Timer. 
+    clock_t startTime  = 0, endTime = 0; 
+    int time_ms = 0;
+
+    // Stores grid data. 
+    char grid[X][Y];
 
     
     // Init screen and set fullscreen property. 
     InitWindow(width, heigth, title);
     
+    // Fullscreen mode and framerate settings. 
     ToggleFullscreen();
-
     SetTargetFPS(5);      
 
-    char grid[X][Y];
-
-    setStartStage(grid);
+    // Get a starting state for game of life. 
+    startTime = setStartStage(grid);
 
     // Loop until close button/ESC button has been pressed.
     while (!WindowShouldClose()) {
+
+        // Timer running before a new start state(grid reset). 
+        endTime = clock() - startTime;
+        time_ms = endTime * CONERT_TO_MS / CLOCKS_PER_SEC;
+        if(time_ms > TIME_ELAPSED)
+            startTime = setStartStage(grid);
+
         // Draw graphics. 
         BeginDrawing();
-        
+
         // Clear and set a black background. 
         ClearBackground(BLACK);
 
-
-        // Run and check each grid before end of each state!
-        for (int i = 0; i < X; ++i)
-            for (int j = 0; j < Y; ++j) {
-                if (grid[i][j] == BORN) grid[i][j] = LIVING;
-                if (grid[i][j] == DYING) grid[i][j] = DEAD;
-                
-                // Kill all that approache the end of the universe. 
-                if (i == 0 ||i == X - 1) grid[i][j] = DEAD;
-                if (j == 0 || j == Y - 1) grid[i][j] = DEAD;
-            }
-
+        // Start -> draw -> end.
+        startState(grid);
         drawGrid(grid);
+        endState(grid);
 
-        for (int i = 0; i < X; ++i) {
-            for (int j = 0; j < Y; ++j) {
-                if (grid[i][j] == ' ')
-                        if (populate(grid, i, j) == true) grid[i][j] = BORN;
-                if (grid[i][j] == LIVING) {
-                    if (underPopulation(grid, i, j) == true) grid[i][j] = DYING;
-                    if (overPopulation(grid, i, j) == true) grid[i][j] = DYING;
-                }
-            }
-        }
-
-        drawGrid(grid);
-        
         // Stop drawing. 
         EndDrawing();
     }
@@ -87,6 +83,37 @@ int main() {
     CloseWindow();     
 
     return 0;
+}
+void startState(char grid[X][Y]) {
+    // Check each grid before start of a state.
+    for (int i = 0; i < X; ++i) {
+        for (int j = 0; j < Y; ++j) {
+            if (grid[i][j] == BORN) grid[i][j] = LIVING;
+            if (grid[i][j] == DYING) grid[i][j] = DEAD;
+            
+            // Kill all live cells that approache the end of the universe. 
+            if (i == 0 ||i == X - 1) grid[i][j] = DEAD;
+            if (j == 0 || j == Y - 1) grid[i][j] = DEAD;
+        }
+    }
+
+    return; 
+}
+
+void endState(char grid[X][Y]) {
+    // Check each grid status at the end of a state.
+    for (int i = 0; i < X; ++i) {
+        for (int j = 0; j < Y; ++j) {
+            if (grid[i][j] == ' ')
+                    if (populate(grid, i, j) == true) grid[i][j] = BORN;
+            if (grid[i][j] == LIVING) {
+                if (underPopulation(grid, i, j) == true) grid[i][j] = DYING;
+                if (overPopulation(grid, i, j) == true) grid[i][j] = DYING;
+            }
+        }
+    }
+
+    return; 
 }
 bool underPopulation(char grid[X][Y], int y, int x) {
 	// Any live cell connected to fewer than two neighbouring live cells will die of underpopulation.
@@ -157,7 +184,7 @@ void drawGrid(char grid[X][Y]) {
     return;
 }
 
-void setStartStage(char grid[X][Y]) {
+long setStartStage(char grid[X][Y]) {
     int num_gliders = 0, num_blinkers = 0;
     int state = 0; 
 
@@ -165,8 +192,12 @@ void setStartStage(char grid[X][Y]) {
     for (int i = 0; i < X; i++)
         for (int n = 0; n < Y; n++) grid[i][n] = DEAD;
 
+    // Used for random selection of pattern. 
     srand(time(NULL));
     state = rand() % 3 + 1; 
+
+    // Tracks start time of this pattern. 
+    clock_t startTime = clock();
 
     if(state == 1) {
         num_gliders = rand() % 10 + 1;  // Amount of gliders.
@@ -185,7 +216,7 @@ void setStartStage(char grid[X][Y]) {
         pattern_two(grid);
     }
 
-    return;
+    return startTime;
 }
 
 void glider(char grid[X][Y]) {
