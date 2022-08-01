@@ -1,9 +1,10 @@
 /*
  *	Created by Oscar Bergström.
- *	Last edited 2022-07-26.
+ *	Last edited 2022-07-29.
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <stdbool.h>
 #include <time.h>
 #include "raylib.h"
@@ -13,68 +14,69 @@
 #define LIVING 'O'
 #define DYING 'x'
 #define DEAD ' '
-// Timer definitions.
-#define CONERT_TO_MS 1000
-#define TIME_ELAPSED 120000
 
-// This correspond to a grid of 1920x1080. 
-#define X 198 // 198 * 10 = 1920
-#define Y 108 // 108 * 10 = 1080
+// Game grid, should be = 1920x1080. 
+// Change values below to rezise game board. 
+// for example 1920 / 10 yields 192 cells.. in X-axis... and so on. 
+#define X 99 // 198 * 20 = 1920
+#define Y 54 // 108 * 20 = 1080
+#define CELL_SIZE 20 // 20*99 = 1920, 20*54 = 1080, this correspond to X and Y. 
 
 bool underPopulation(char[X][Y], int, int);
 bool overPopulation(char[X][Y], int, int);
 bool populate(char[X][Y], int, int);
+bool startSimulation(char[X][Y]);
+bool endSimulation(char[X][Y]);  
+void displayMessage(bool);
 void startState(char[X][Y]);
 void drawGrid(char[X][Y]);
 void endState(char[X][Y]);
-long setStartStage(char[X][Y]);
-void glider(char[X][Y]);
-void blinker(char[X][Y]);
-void pattern_one(char[X][Y]);
-void pattern_two(char[X][Y]);
 
 int main() {
     // Set initial screen size and title. 
     const int width = 1920, heigth = 1080;
     const char* title = "Game of Life";
     
-    // Timer. 
-    clock_t startTime  = 0, endTime = 0; 
-    int time_ms = 0;
-
     // Stores grid data. 
     char grid[X][Y];
 
-    
+    bool startUpMode = true; 
+
     // Init screen and set fullscreen property. 
     InitWindow(width, heigth, title);
     
     // Fullscreen mode and framerate settings. 
     ToggleFullscreen();
-    SetTargetFPS(5);      
+    SetTargetFPS(5); 
 
-    // Get a starting state for game of life. 
-    startTime = setStartStage(grid);
+    // At the begining set all cells status to dead. 
+    for(int i = 0; i < X; ++i) {
+        for(int j = 0; j < Y; ++j) 
+            grid[i][j] = DEAD;  
+    }
 
     // Loop until close button/ESC button has been pressed.
     while (!WindowShouldClose()) {
 
-        // Timer running before a new start state(grid reset). 
-        endTime = clock() - startTime;
-        time_ms = endTime * CONERT_TO_MS / CLOCKS_PER_SEC;
-        if(time_ms > TIME_ELAPSED)
-            startTime = setStartStage(grid);
-
         // Draw graphics. 
         BeginDrawing();
 
-        // Clear and set a black background. 
-        ClearBackground(BLACK);
+            // Clear and set a black background. 
+            ClearBackground(BLACK);
+            displayMessage(startUpMode);
 
-        // Start -> draw -> end.
-        startState(grid);
-        drawGrid(grid);
-        endState(grid);
+            if(startUpMode == true) 
+                startUpMode = startSimulation(grid); 
+            else
+                startUpMode = endSimulation(grid); 
+                
+            
+            // Start -> draw -> end.
+            if(startUpMode == false) {
+                startState(grid);
+                drawGrid(grid);
+                endState(grid);
+            } 
 
         // Stop drawing. 
         EndDrawing();
@@ -167,8 +169,8 @@ bool populate (char grid[X][Y], int y, int x) {
 }
 
 void drawGrid(char grid[X][Y]) {
-    int posX = 0, posY = 0; 		    // Square posistion.
-    const int width = 10, heigth = 10;  // Square size. 
+    int posX = 0, posY = 0; 		                  // Square posistion.
+    const int width = CELL_SIZE, heigth = CELL_SIZE;  // Square size. 
     
     // Draw squares, with color dependant of game state(DEAD/LIVING). 	
     for(int i = 0; i < X; ++i) {
@@ -176,144 +178,87 @@ void drawGrid(char grid[X][Y]) {
             if(grid[i][j] == LIVING) 
                 DrawRectangleLines(posY, posX, width, heigth, GREEN);
                 
-            posX += 10; // Next x line.
+            posX += CELL_SIZE; // Next x line.
         }
-        posY += 10; // Next y line.
+        posY += CELL_SIZE; // Next y line.
         posX = 0;   // Reset.
     }
     return;
 }
 
-long setStartStage(char grid[X][Y]) {
-    int num_gliders = 0, num_blinkers = 0;
-    int state = 0; 
-
-    // Set state of all cells to dead.
-    for (int i = 0; i < X; i++)
-        for (int n = 0; n < Y; n++) grid[i][n] = DEAD;
-
-    // Used for random selection of pattern. 
-    srand(time(NULL));
-    state = rand() % 3 + 1; 
-
-    // Tracks start time of this pattern. 
-    clock_t startTime = clock();
-
-    if(state == 1) {
-        num_gliders = rand() % 10 + 1;  // Amount of gliders.
-        num_blinkers = rand() % 10 + 1; // Amount of blinkers.
-        
-        for(int i = 0; i < num_gliders; ++i)
-            glider(grid);
-
-        for(int i = 0; i < num_blinkers; ++i)
-            blinker(grid);
-    }
-    else if(state == 2) {
-        pattern_one(grid);
-    }
-    else if(state == 3) {
-        pattern_two(grid);
-    }
-
-    return startTime;
-}
-
-void glider(char grid[X][Y]) {
-    // This will create a simple glider, at a random location. 
-    int x = rand() % 180+ 10;
-    int y = rand() % 90 + 10;
-
-    grid[x][y] = LIVING;
-    grid[x + 1][y] = LIVING;
-    grid[x + 2][y] = LIVING;
-    grid[x + 2][y - 1] = LIVING;
-    grid[x + 1][y - 2] = LIVING;
-
-    return;
-}
-void blinker(char grid[X][Y]) {
-    // This will create a simple blinker, at a random location. 
-    int x = rand() % 180+ 10;
-    int y = rand() % 90 + 10;
-
-    grid[x][y] = LIVING;
-    grid[x + 1][y] = LIVING;
-    grid[x + 2][y] = LIVING;
-
-    return;
-}
-
-void pattern_one(char grid[X][Y]) {
-    grid[100][50] = LIVING;
-    grid[101][50] = LIVING;
-    grid[102][50] = LIVING;
-    grid[103][50] = LIVING;
-    grid[104][50] = LIVING;
-    grid[105][50] = LIVING;
-    grid[106][50] = LIVING;
-    grid[107][50] = LIVING;
-
-    // 1 dead cell
-
-    grid[109][50] = LIVING;
-    grid[110][50] = LIVING;
-    grid[111][50] = LIVING;
-    grid[112][50] = LIVING;
-    grid[113][50] = LIVING;
-
-    // 3 dead cells
+void displayMessage(bool startUpMode) {
     
-    grid[116][50] = LIVING;
-    grid[117][50] = LIVING;
-    grid[118][50] = LIVING;
-
-    // 6 dead cells. 
-
-    grid[123][50] = LIVING;
-    grid[124][50] = LIVING;
-    grid[125][50] = LIVING;
-    grid[126][50] = LIVING;
-    grid[127][50] = LIVING;
-    grid[128][50] = LIVING;
-    grid[129][50] = LIVING;
-
-    // 1 dead cell. 
-
-    grid[131][50] = LIVING;
-    grid[132][50] = LIVING;
-    grid[133][50] = LIVING;
-    grid[134][50] = LIVING;
-    grid[135][50] = LIVING;
-
-    return;
-}
-void pattern_two(char grid[X][Y]) {
-    grid[100][50] = LIVING;
-    grid[101][50] = LIVING;
-    grid[102][50] = LIVING;
-    grid[104][50] = LIVING; 
-    
-    // Next line.
-
-    grid[100][51] = LIVING;
-
-    // Next line.
-
-    grid[103][52] = LIVING; 
-    grid[104][52] = LIVING; 
-
-    // Next line.
-
-    grid[101][53] = LIVING;
-    grid[102][53] = LIVING;
-    grid[104][53] = LIVING;
-
-    // Next line.
-
-    grid[100][54] = LIVING;
-    grid[102][54] = LIVING;
-    grid[104][54] = LIVING;
+    if(startUpMode == true) // If in start up mode. 
+        DrawText("Use left mouse button to create a start pattern.\nPress ENTER to start the simulation or hit the ESC button to exit.", 10, 10, 20, GREEN); 
+    else // When simulation is running.
+        DrawText("Press ENTER to create a new start pattern or hit the ESC button to exit.", 10, 10, 20, GREEN);
 
     return; 
 }
+
+bool startSimulation(char grid[X][Y]) {
+    // Cell grid data: 
+    // X: 1980  Y: 1080
+    // A cell is 10px (height,width)
+
+    // Check if left mouse button is down(being clicked) LEFT to create and RIGHT to remove. 
+    if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+        
+        // Get mouse x and y pos and check values against i and j which correspond to 1980, 1080. 
+        Vector2 mousePos = GetMousePosition(); 
+        for(int i = 0; i < X * CELL_SIZE; i += CELL_SIZE) {
+            if(i > mousePos.x - CELL_SIZE) {
+                for(int j = 0; j < Y * CELL_SIZE; j += CELL_SIZE) {
+                    if(j > mousePos.y - CELL_SIZE) {
+                        if(grid[i/CELL_SIZE][j/CELL_SIZE] == DEAD)  // If a "clicked" cell is dead set it to alive. 
+                            grid[i/CELL_SIZE][j/CELL_SIZE] = LIVING;  
+                        
+                        goto done;
+                    }
+                }
+            }
+        }
+    }
+    else if(IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
+        // Get mouse x and y pos and check values against i and j which correspond to 1980, 1080. 
+        Vector2 mousePos = GetMousePosition(); 
+        for(int i = 0; i < X * CELL_SIZE; i += CELL_SIZE) {
+            if(i > mousePos.x - CELL_SIZE) {
+                for(int j = 0; j < Y * CELL_SIZE; j += CELL_SIZE) {
+                    if(j > mousePos.y - CELL_SIZE) {
+                        if(grid[i/CELL_SIZE][j/CELL_SIZE] == LIVING)  // If a "clicked" cell is alive set it to dead. 
+                            grid[i/CELL_SIZE][j/CELL_SIZE] = DEAD;
+                        
+                        goto done;
+                    }
+                }
+            }
+        }
+    }
+
+    done: 
+
+    // refresh grid. 
+    drawGrid(grid); 
+
+    // Exit call. 
+    if(IsKeyPressed(KEY_ENTER)) 
+        return false;
+
+    return true; 
+}
+
+bool endSimulation(char grid[X][Y]) {
+    // Exit call. 
+    if(IsKeyPressed(KEY_ENTER)) {
+        // Reset grid. 
+        for(int i = 0; i < X; ++i) {
+            for(int j = 0; j < Y; ++j) 
+                grid[i][j] = DEAD;  
+        }
+        return true;
+    }
+    else
+        return false; 
+}
+
