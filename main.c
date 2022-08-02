@@ -18,8 +18,8 @@
 // Game grid, should be = 1920x1080. 
 // Change values below to rezise game board. 
 // for example 1920 / 10 yields 192 cells.. in X-axis... and so on. 
-#define X 99 // 198 * 20 = 1920
-#define Y 54 // 108 * 20 = 1080
+#define X 99         // 198 * 20 = 1920.
+#define Y 54         // 108 * 20 = 1080.
 #define CELL_SIZE 20 // 20*99 = 1920, 20*54 = 1080, this correspond to X and Y. 
 
 bool underPopulation(char[X][Y], int, int);
@@ -47,13 +47,15 @@ int main() {
     
     // Fullscreen mode and framerate settings. 
     ToggleFullscreen();
-    SetTargetFPS(5); 
+    SetTargetFPS(60); 
 
     // At the begining set all cells status to dead. 
     for(int i = 0; i < X; ++i) {
         for(int j = 0; j < Y; ++j) 
             grid[i][j] = DEAD;  
     }
+
+    float timer = 0.0f;
 
     // Loop until close button/ESC button has been pressed.
     while (!WindowShouldClose()) {
@@ -63,20 +65,31 @@ int main() {
 
             // Clear and set a black background. 
             ClearBackground(BLACK);
+           
             displayMessage(startUpMode);
 
             if(startUpMode == true) 
                 startUpMode = startSimulation(grid); 
-            else
-                startUpMode = endSimulation(grid); 
-                
-            
-            // Start -> draw -> end.
+            else 
+                startUpMode = endSimulation(grid);
+
+
             if(startUpMode == false) {
+                // When no longer in start up mode: 
+                // 1. get start state.
+                // 2. draw with an animation timer of 0.4f.
+                // 3. draw and get end state.
                 startState(grid);
-                drawGrid(grid);
-                endState(grid);
-            } 
+                if(timer <= 0.4f) { 
+                    drawGrid(grid);
+                    timer += GetFrameTime();
+                }
+                else {
+                    drawGrid(grid);
+                    endState(grid);
+                    timer = 0; 
+                }
+            }
 
         // Stop drawing. 
         EndDrawing();
@@ -190,7 +203,7 @@ void displayMessage(bool startUpMode) {
     
     if(startUpMode == true) // If in start up mode. 
         DrawText("Use left mouse button to create a start pattern.\nPress ENTER to start the simulation or hit the ESC button to exit.", 10, 10, 20, GREEN); 
-    else // When simulation is running.
+    else                    // When simulation is running.
         DrawText("Press ENTER to create a new start pattern or hit the ESC button to exit.", 10, 10, 20, GREEN);
 
     return; 
