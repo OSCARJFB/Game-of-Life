@@ -78,7 +78,7 @@ int main() {
                 // When no longer in start up mode: 
                 // 1. get start state.
                 // 2. draw with an animation timer of 0.4f.
-                // 3. draw and get end state.
+                // 3. draw and get end state, reset timer.
                 startState(grid);
                 if(timer <= 0.4f) { 
                     drawGrid(grid);
