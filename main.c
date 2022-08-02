@@ -40,7 +40,11 @@ int main() {
     // Stores grid data. 
     char grid[X][Y];
 
+    // Start up mode. 	
     bool startUpMode = true; 
+    
+    // Animation timer.	
+    float timer = 0.0f;
 
     // Init screen and set fullscreen property. 
     InitWindow(width, heigth, title);
@@ -54,8 +58,6 @@ int main() {
         for(int j = 0; j < Y; ++j) 
             grid[i][j] = DEAD;  
     }
-
-    float timer = 0.0f;
 
     // Loop until close button/ESC button has been pressed.
     while (!WindowShouldClose()) {
