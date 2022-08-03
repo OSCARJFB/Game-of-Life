@@ -40,11 +40,7 @@ int main() {
     // Stores grid data. 
     char grid[X][Y];
 
-    // Start up mode. 	
     bool startUpMode = true; 
-    
-    // Animation timer.	
-    float timer = 0.0f;
 
     // Init screen and set fullscreen property. 
     InitWindow(width, heigth, title);
@@ -58,6 +54,8 @@ int main() {
         for(int j = 0; j < Y; ++j) 
             grid[i][j] = DEAD;  
     }
+
+    float animation_timer = 0.0f;
 
     // Loop until close button/ESC button has been pressed.
     while (!WindowShouldClose()) {
@@ -75,21 +73,20 @@ int main() {
             else 
                 startUpMode = endSimulation(grid);
 
-
             if(startUpMode == false) {
                 // When no longer in start up mode: 
                 // 1. get start state.
-                // 2. draw with an animation timer of 0.4f.
-                // 3. draw and get end state, reset timer.
+                // 2. draw with an animation animation_timer of 0.4f.
+                // 3. draw, get end state and reset animation_timer.
                 startState(grid);
-                if(timer <= 0.4f) { 
+                if(animation_timer <= 0.4f) { 
                     drawGrid(grid);
-                    timer += GetFrameTime();
+                    animation_timer += GetFrameTime();
                 }
                 else {
                     drawGrid(grid);
                     endState(grid);
-                    timer = 0; 
+                    animation_timer = 0; 
                 }
             }
 
@@ -191,7 +188,12 @@ void drawGrid(char grid[X][Y]) {
     for(int i = 0; i < X; ++i) {
         for(int j = 0; j < Y; ++j) {
             if(grid[i][j] == LIVING) 
-                DrawRectangleLines(posY, posX, width, heigth, GREEN);
+                //DrawRectangleLines(posY, posX, width, heigth, GREEN);
+                DrawRectangle(posY, posX, width - 1, heigth - 1, GREEN);
+            else 
+                DrawRectangleLines(posY, posX, width, heigth, (Color) {30, 40, 55, 66});
+
+
                 
             posX += CELL_SIZE; // Next x line.
         }
@@ -202,11 +204,27 @@ void drawGrid(char grid[X][Y]) {
 }
 
 void displayMessage(bool startUpMode) {
-    
-    if(startUpMode == true) // If in start up mode. 
-        DrawText("Use left mouse button to create a start pattern.\nPress ENTER to start the simulation or hit the ESC button to exit.", 10, 10, 20, GREEN); 
-    else                    // When simulation is running.
-        DrawText("Press ENTER to create a new start pattern or hit the ESC button to exit.", 10, 10, 20, GREEN);
+
+    const char info_message [] = "IN START UP MODE: \n" 
+                                 "A LEFT CLICK WILL set cell state to LIVING. \n"
+                                 "A RIGHT CLICK will set cell state to DEAD. \n"
+                                 "press ENTER to start the simulation. \n\n"
+                                 "IN RUN MODE: \n"
+                                 "press ENTER to reset and stop the simulation. \n\n"
+                                 "IN ANY MODE: \n"
+                                 "press ESC to exit. \n";
+   
+   const char regular_message[] = "Press and hold the i key for info!"; 
+
+    if(IsKeyDown(KEY_I)) { // If i Key is being pressed. 
+        DrawText(info_message, 10, 10, 20, GREEN); 
+        if(startUpMode == true) 
+            DrawText("Current mode: start up", 10, 330, 20, GREEN); 
+        else
+            DrawText("Current mode: Running", 10, 330, 20, GREEN);  
+    }
+    else                   // if no key is being pressed. 
+        DrawText(regular_message, 10, 10, 20, GREEN); 
 
     return; 
 }
