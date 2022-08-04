@@ -40,12 +40,14 @@ int main() {
     // Stores grid data. 
     char grid[X][Y];
 
+    // While this true the creation of a start pattern is enabled. 
     bool startUpMode = true; 
-
-    // Init screen and set fullscreen property. 
-    InitWindow(width, heigth, title);
+    
+    // Refresh rate of grid animation. 
+    float animation_timer = 0.0f;
     
     // Fullscreen mode and framerate settings. 
+    InitWindow(width, heigth, title);
     ToggleFullscreen();
     SetTargetFPS(60); 
 
@@ -54,8 +56,6 @@ int main() {
         for(int j = 0; j < Y; ++j) 
             grid[i][j] = DEAD;  
     }
-
-    float animation_timer = 0.0f;
 
     // Loop until close button/ESC button has been pressed.
     while (!WindowShouldClose()) {
@@ -181,24 +181,21 @@ bool populate (char grid[X][Y], int y, int x) {
 }
 
 void drawGrid(char grid[X][Y]) {
-    int posX = 0, posY = 0; 		                  // Square posistion.
+    int posX = 0, posY = 0; 		              // Square posistion.
     const int width = CELL_SIZE, heigth = CELL_SIZE;  // Square size. 
     
     // Draw squares, with color dependant of game state(DEAD/LIVING). 	
     for(int i = 0; i < X; ++i) {
         for(int j = 0; j < Y; ++j) {
             if(grid[i][j] == LIVING) 
-                //DrawRectangleLines(posY, posX, width, heigth, GREEN);
                 DrawRectangle(posY, posX, width - 1, heigth - 1, GREEN);
             else 
                 DrawRectangleLines(posY, posX, width, heigth, (Color) {30, 40, 55, 66});
-
-
                 
             posX += CELL_SIZE; // Next x line.
         }
-        posY += CELL_SIZE; // Next y line.
-        posX = 0;   // Reset.
+        posY += CELL_SIZE;     // Next y line.
+        posX = 0;              // Reset.
     }
     return;
 }
