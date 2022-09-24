@@ -1,5 +1,5 @@
 /*
- *	Created by Oscar Bergström.
+ *	Author: Oscar Bergström.
  *	Last edited 2022-09-24.
  */
 
