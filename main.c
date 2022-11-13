@@ -1,6 +1,6 @@
 /*
- *	Author: Oscar Bergström.
- *	Last edited 2022-09-24.
+ *	Created by Oscar Bergström.
+ *	Last edited 2022-11-13.
  */
 
 #include <stdlib.h>
@@ -9,16 +9,18 @@
 #include <time.h>
 #include "raylib.h"
 
-// Definition of life death .. and unofficial midstates. 
+// Cell states.
 #define BORN 'o'
 #define LIVING 'O'
 #define DYING 'x'
 #define DEAD ' '
 
-#define X 99         
-#define Y 54         
-#define CELL_SIZE 20 
+#define CELL_SIZE 20
+#define X 90      
+#define Y 90     
 
+void windowSetup();
+void runGame();
 bool underPopulation(char[X][Y], int, int);
 bool overPopulation(char[X][Y], int, int);
 bool populate(char[X][Y], int, int);
@@ -29,36 +31,43 @@ void startState(char[X][Y]);
 void drawGrid(char[X][Y]);
 void endState(char[X][Y]);
 
-int main() 
-{
-    // Set initial screen size and title. 
-    const int width = 1920, heigth = 1080;
-    const char* title = "Game of Life";
-    
-    // Stores grid data. 
-    char grid[X][Y];
+int main() {
+    windowSetup();
+    runGame();
 
-    // While this true the creation of a start pattern is enabled. 
-    bool startUpMode = true; 
-    
-    // Refresh rate of grid animation. 
-    float animation_timer = 0.0f;
-    
-    // Fullscreen mode and framerate settings. 
+    return 0;
+}
+
+void windowSetup()
+{
+    // Init screen and set window to fullscreen property. 
+    const int width = GetScreenWidth(), heigth = GetScreenHeight();
+    const char* title = "Game of Life";
+
     InitWindow(width, heigth, title);
     ToggleFullscreen();
     SetTargetFPS(60); 
+}
+
+void runGame()
+{
+    bool startUpMode = true; 
+
+    char grid[X][Y];
 
     // At the begining set all cells status to dead. 
     for(int i = 0; i < X; ++i) 
     {
         for(int j = 0; j < Y; ++j) 
-            grid[i][j] = DEAD;  
+        {
+            grid[i][j] = DEAD;
+        }
     }
 
+    float animation_timer = 0.0f;
+
     // Loop until close button/ESC button has been pressed.
-    while (!WindowShouldClose()) 
-    {
+    while (!WindowShouldClose()) {
 
         // Draw graphics. 
         BeginDrawing();
@@ -73,20 +82,17 @@ int main()
             else 
                 startUpMode = endSimulation(grid);
 
-            if(startUpMode == false) 
-	    {
+            if(startUpMode == false) {
                 // When no longer in start up mode: 
                 // 1. get start state.
                 // 2. draw with an animation animation_timer of 0.4f.
                 // 3. draw, get end state and reset animation_timer.
                 startState(grid);
-                if(animation_timer <= 0.4f) 
-		{ 
+                if(animation_timer <= 0.4f) { 
                     drawGrid(grid);
                     animation_timer += GetFrameTime();
                 }
-                else 
-		{
+                else {
                     drawGrid(grid);
                     endState(grid);
                     animation_timer = 0; 
@@ -98,16 +104,12 @@ int main()
     }
 
     CloseWindow();     
-
-    return 0;
 }
-void startState(char grid[X][Y]) 
-{
+
+void startState(char grid[X][Y]) {
     // Check each grid before start of a state.
-    for (int i = 0; i < X; ++i) 
-    {
-        for (int j = 0; j < Y; ++j) 
-	{
+    for (int i = 0; i < X; ++i) {
+        for (int j = 0; j < Y; ++j) {
             if (grid[i][j] == BORN) grid[i][j] = LIVING;
             if (grid[i][j] == DYING) grid[i][j] = DEAD;
             
@@ -120,17 +122,13 @@ void startState(char grid[X][Y])
     return; 
 }
 
-void endState(char grid[X][Y]) 
-{
+void endState(char grid[X][Y]) {
     // Check each grid status at the end of a state.
-    for (int i = 0; i < X; ++i) 
-    {
-        for (int j = 0; j < Y; ++j) 
-	{
+    for (int i = 0; i < X; ++i) {
+        for (int j = 0; j < Y; ++j) {
             if (grid[i][j] == ' ')
                     if (populate(grid, i, j) == true) grid[i][j] = BORN;
-            if (grid[i][j] == LIVING) 
-	    {
+            if (grid[i][j] == LIVING) {
                 if (underPopulation(grid, i, j) == true) grid[i][j] = DYING;
                 if (overPopulation(grid, i, j) == true) grid[i][j] = DYING;
             }
@@ -139,8 +137,7 @@ void endState(char grid[X][Y])
 
     return; 
 }
-bool underPopulation(char grid[X][Y], int y, int x) 
-{
+bool underPopulation(char grid[X][Y], int y, int x) {
 	// Any live cell connected to fewer than two neighbouring live cells will die of underpopulation.
 	int counter = 0; 
 
@@ -157,8 +154,7 @@ bool underPopulation(char grid[X][Y], int y, int x)
 	else return false;
 }
 
-bool overPopulation(char grid[X][Y], int y, int x) 
-{
+bool overPopulation(char grid[X][Y], int y, int x) {
 	// Any live cell connected to more than three other live cells die of overpopulation. 
 	int counter = 0; 
 
@@ -175,8 +171,7 @@ bool overPopulation(char grid[X][Y], int y, int x)
 	else return false;
 }
 
-bool populate (char grid[X][Y], int y, int x) 
-{
+bool populate (char grid[X][Y], int y, int x) {
 	// If a dead cell has three live neighbors it becomes populated.
 	int counter = 0;
 
@@ -193,31 +188,30 @@ bool populate (char grid[X][Y], int y, int x)
 	else return false;
 }
 
-void drawGrid(char grid[X][Y]) 
-{
-    int posX = 0, posY = 0; 		              // Square posistion.
+void drawGrid(char grid[X][Y]) {
+    int posX = 0, posY = 0; 		                  // Square posistion.
     const int width = CELL_SIZE, heigth = CELL_SIZE;  // Square size. 
     
     // Draw squares, with color dependant of game state(DEAD/LIVING). 	
-    for(int i = 0; i < X; ++i) 
-    {
-        for(int j = 0; j < Y; ++j) 
-	{
+    for(int i = 0; i < X; ++i) {
+        for(int j = 0; j < Y; ++j) {
             if(grid[i][j] == LIVING) 
+                //DrawRectangleLines(posY, posX, width, heigth, GREEN);
                 DrawRectangle(posY, posX, width - 1, heigth - 1, GREEN);
             else 
                 DrawRectangleLines(posY, posX, width, heigth, (Color) {30, 40, 55, 66});
+
+
                 
             posX += CELL_SIZE; // Next x line.
         }
-        posY += CELL_SIZE;     // Next y line.
-        posX = 0;              // Reset.
+        posY += CELL_SIZE; // Next y line.
+        posX = 0;   // Reset.
     }
     return;
 }
 
-void displayMessage(bool startUpMode) 
-{
+void displayMessage(bool startUpMode) {
 
     const char info_message [] = "IN START UP MODE: \n" 
                                  "A LEFT CLICK WILL set cell state to LIVING. \n"
@@ -243,26 +237,20 @@ void displayMessage(bool startUpMode)
     return; 
 }
 
-bool startSimulation(char grid[X][Y]) 
-{
+bool startSimulation(char grid[X][Y]) {
     // Cell grid data: 
     // X: 1980  Y: 1080
     // A cell is 10px (height,width)
 
     // Check if left mouse button is down(being clicked) LEFT to create and RIGHT to remove. 
-    if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)) 
-    {
+    if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
         
         // Get mouse x and y pos and check values against i and j which correspond to 1980, 1080. 
         Vector2 mousePos = GetMousePosition(); 
-        for(int i = 0; i < X * CELL_SIZE; i += CELL_SIZE) 
-	{
-            if(i > mousePos.x - CELL_SIZE) 
-	    {
-                for(int j = 0; j < Y * CELL_SIZE; j += CELL_SIZE) 
-		{
-                    if(j > mousePos.y - CELL_SIZE) 
-		    {
+        for(int i = 0; i < X * CELL_SIZE; i += CELL_SIZE) {
+            if(i > mousePos.x - CELL_SIZE) {
+                for(int j = 0; j < Y * CELL_SIZE; j += CELL_SIZE) {
+                    if(j > mousePos.y - CELL_SIZE) {
                         if(grid[i/CELL_SIZE][j/CELL_SIZE] == DEAD)  // If a "clicked" cell is dead set it to alive. 
                             grid[i/CELL_SIZE][j/CELL_SIZE] = LIVING;  
                         
@@ -272,18 +260,13 @@ bool startSimulation(char grid[X][Y])
             }
         }
     }
-    else if(IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) 
-    {
+    else if(IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
         // Get mouse x and y pos and check values against i and j which correspond to 1980, 1080. 
         Vector2 mousePos = GetMousePosition(); 
-        for(int i = 0; i < X * CELL_SIZE; i += CELL_SIZE) 
-	{
-            if(i > mousePos.x - CELL_SIZE) 
-	    {
-                for(int j = 0; j < Y * CELL_SIZE; j += CELL_SIZE) 
-		{
-                    if(j > mousePos.y - CELL_SIZE) 
-		    {
+        for(int i = 0; i < X * CELL_SIZE; i += CELL_SIZE) {
+            if(i > mousePos.x - CELL_SIZE) {
+                for(int j = 0; j < Y * CELL_SIZE; j += CELL_SIZE) {
+                    if(j > mousePos.y - CELL_SIZE) {
                         if(grid[i/CELL_SIZE][j/CELL_SIZE] == LIVING)  // If a "clicked" cell is alive set it to dead. 
                             grid[i/CELL_SIZE][j/CELL_SIZE] = DEAD;
                         
@@ -306,14 +289,11 @@ bool startSimulation(char grid[X][Y])
     return true; 
 }
 
-bool endSimulation(char grid[X][Y]) 
-{
+bool endSimulation(char grid[X][Y]) {
     // Exit call. 
-    if(IsKeyPressed(KEY_ENTER)) 
-    {
+    if(IsKeyPressed(KEY_ENTER)) {
         // Reset grid. 
-        for(int i = 0; i < X; ++i) 
-	{
+        for(int i = 0; i < X; ++i) {
             for(int j = 0; j < Y; ++j) 
                 grid[i][j] = DEAD;  
         }
