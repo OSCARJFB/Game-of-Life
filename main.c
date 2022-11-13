@@ -27,9 +27,9 @@ bool populate(char[X][Y], int, int);
 bool startSimulation(char[X][Y]);
 bool endSimulation(char[X][Y]);  
 void displayMessage(bool);
-void startState(char[X][Y]);
-void drawGrid(char[X][Y]);
-void endState(char[X][Y]);
+void newStage(char[X][Y]);
+void drawStage(char[X][Y]);
+void endStage(char[X][Y]);
 
 int main() {
     windowSetup();
@@ -52,6 +52,7 @@ void windowSetup()
 void runGame()
 {
     bool startUpMode = true; 
+    float animation_timer = 0.0f;
 
     char grid[X][Y];
 
@@ -64,52 +65,47 @@ void runGame()
         }
     }
 
-    float animation_timer = 0.0f;
-
     // Loop until close button/ESC button has been pressed.
-    while (!WindowShouldClose()) {
+    while (!WindowShouldClose()) 
+    {
 
-        // Draw graphics. 
+
         BeginDrawing();
 
-            // Clear and set a black background. 
             ClearBackground(BLACK);
-           
+            
             displayMessage(startUpMode);
 
-            if(startUpMode == true) 
-                startUpMode = startSimulation(grid); 
-            else 
-                startUpMode = endSimulation(grid);
+            startUpMode = startUpMode == true ? startSimulation(grid) : endSimulation(grid);
 
-            if(startUpMode == false) {
-                // When no longer in start up mode: 
-                // 1. get start state.
-                // 2. draw with an animation animation_timer of 0.4f.
-                // 3. draw, get end state and reset animation_timer.
-                startState(grid);
-                if(animation_timer <= 0.4f) { 
-                    drawGrid(grid);
+            if(!startUpMode) 
+            {
+                newStage(grid);
+                
+                if(animation_timer <= 0.4f) 
+                { 
+                    drawStage(grid);
                     animation_timer += GetFrameTime();
                 }
                 else {
-                    drawGrid(grid);
-                    endState(grid);
+                    endStage(grid);
                     animation_timer = 0; 
                 }
             }
 
-        // Stop drawing. 
         EndDrawing();
     }
 
     CloseWindow();     
 }
 
-void startState(char grid[X][Y]) {
-    // Check each grid before start of a state.
-    for (int i = 0; i < X; ++i) {
-        for (int j = 0; j < Y; ++j) {
+void newStage(char grid[X][Y]) 
+{
+    // Check each grid before start of a new state.
+    for (int i = 0; i < X; ++i) 
+    {
+        for (int j = 0; j < Y; ++j) 
+        {
             if (grid[i][j] == BORN) grid[i][j] = LIVING;
             if (grid[i][j] == DYING) grid[i][j] = DEAD;
             
@@ -122,15 +118,28 @@ void startState(char grid[X][Y]) {
     return; 
 }
 
-void endState(char grid[X][Y]) {
-    // Check each grid status at the end of a state.
-    for (int i = 0; i < X; ++i) {
-        for (int j = 0; j < Y; ++j) {
+void endStage(char grid[X][Y]) 
+{
+    // Check and update the status of each cell at the end of a state.
+    for (int i = 0; i < X; ++i) 
+    {
+        for (int j = 0; j < Y; ++j) 
+        {
             if (grid[i][j] == ' ')
-                    if (populate(grid, i, j) == true) grid[i][j] = BORN;
-            if (grid[i][j] == LIVING) {
-                if (underPopulation(grid, i, j) == true) grid[i][j] = DYING;
-                if (overPopulation(grid, i, j) == true) grid[i][j] = DYING;
+            {
+                if (populate(grid, i, j)) grid[i][j] = BORN;
+            }
+            if (grid[i][j] == LIVING) 
+            {
+                if (underPopulation(grid, i, j)) 
+                {
+                    grid[i][j] = DYING;
+                }
+
+                if (overPopulation(grid, i, j)) 
+                {
+                    grid[i][j] = DYING;
+                }
             }
         }
     }
@@ -188,7 +197,7 @@ bool populate (char grid[X][Y], int y, int x) {
 	else return false;
 }
 
-void drawGrid(char grid[X][Y]) {
+void drawStage(char grid[X][Y]) {
     int posX = 0, posY = 0; 		                  // Square posistion.
     const int width = CELL_SIZE, heigth = CELL_SIZE;  // Square size. 
     
@@ -224,14 +233,21 @@ void displayMessage(bool startUpMode) {
    
    const char regular_message[] = "Press and hold the i key for info!"; 
 
-    if(IsKeyDown(KEY_I)) { // If i Key is being pressed. 
+    // Show / hide help message. 
+    if(IsKeyDown(KEY_I)) { 
+        
         DrawText(info_message, 10, 10, 20, GREEN); 
+        
         if(startUpMode == true) 
+        {
             DrawText("Current mode: start up", 10, 330, 20, GREEN); 
+        }
         else
+        {
             DrawText("Current mode: Running", 10, 330, 20, GREEN);  
+        }
     }
-    else                   // if no key is being pressed. 
+    else 
         DrawText(regular_message, 10, 10, 20, GREEN); 
 
     return; 
@@ -280,7 +296,7 @@ bool startSimulation(char grid[X][Y]) {
     done: 
 
     // refresh grid. 
-    drawGrid(grid); 
+    drawStage(grid); 
 
     // Exit call. 
     if(IsKeyPressed(KEY_ENTER)) 
