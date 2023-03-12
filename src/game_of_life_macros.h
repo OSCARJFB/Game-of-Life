@@ -15,4 +15,7 @@
 // Grid size y-axis. 
 #define Y 90
 
+// Background color used for square lines.
+#define BACKGROUND_COLOR (Color){30, 40, 55, 66}
+
 #endif // GAME_OF_LIFE_MACROS_H
