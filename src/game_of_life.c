@@ -10,13 +10,14 @@
 #include <raylib.h>
 #include "game_of_life_prototypes.h"
 #include "game_of_life_macros.h"
+#include "game_of_life_enums.h"
 
 int main(void)
 {
     windowSetup();
     runGame();
 
-    return EXIT_SUCCESS;
+    return 0;
 }
 
 void windowSetup(void)
@@ -54,7 +55,7 @@ void runGame(void)
         ClearBackground(BLACK);
 
         displayMessage(startUpMode);
-        startUpMode = startUpMode == true ? startSimulation(grid) : endSimulation(grid);
+        startUpMode = startUpMode ? startSimulation(grid) : endSimulation(grid);
 
         if (!startUpMode)
         {
@@ -206,7 +207,7 @@ void drawStage(char grid[X][Y])
     int posX = 0, posY = 0;
     const int width = CELL_SIZE, heigth = CELL_SIZE;
 
-    // Draw squares, with color depending on the  game state(DEAD/LIVING).
+    // Draw squares, with color dependant on the games current state(DEAD/LIVING).
     for (int i = 0; i < X; ++i)
     {
         for (int j = 0; j < Y; ++j)
@@ -217,7 +218,7 @@ void drawStage(char grid[X][Y])
             }
             else
             {
-                DrawRectangleLines(posY, posX, width, heigth, (Color){30, 40, 55, 66});
+                DrawRectangleLines(posY, posX, width, heigth, BACKGROUND_COLOR);
             }
 
             posX += CELL_SIZE;
@@ -232,29 +233,28 @@ void displayMessage(bool startUpMode)
 {
 
     const char *info_message = "IN START UP MODE: \n"
-                               "A LEFT CLICK wILL set cell state to LIVING. \n"
-                               "A RIGHT CLICK will set cell state to DEAD. \n"
-                               "press ENTER to start the simulation. \n\n"
+                               "A LEFT CLICK will create a new cell. \n"
+                               "A RIGHT CLICK will remove a cell. \n"
+                               "Press ENTER/SPACE to start the simulation. \n\n"
                                "IN RUNNING MODE: \n"
-                               "press ENTER to reset and stop the simulation. \n\n"
+                               "Press ENTER/SPACE to reset/stop the simulation. \n\n"
                                "IN ANY MODE: \n"
-                               "press ESC to exit. \n";
+                               "Press ESC to exit. \n";
 
-    const char regular_message[] = "For help, press and hold the SPACE key!";
+    const char regular_message[] = "Help! press and hold F5";
 
     // Shows / hides help message.
-    if (IsKeyDown(KEY_SPACE))
+    if (IsKeyDown(KEY_F5))
     {
-
         DrawText(info_message, 10, 10, 20, GREEN);
 
         if (startUpMode == true)
         {
-            DrawText("Currently: START UP MODE", 10, 330, 20, GREEN);
+            DrawText("Current mode: START UP MODE", 10, 330, 20, GREEN);
         }
         else
         {
-            DrawText("Currently: RUNNING MODE", 10, 330, 20, GREEN);
+            DrawText("Current mode: RUNNING MODE", 10, 330, 20, GREEN);
         }
     }
     else
@@ -267,7 +267,7 @@ void displayMessage(bool startUpMode)
 
 bool startSimulation(char grid[X][Y])
 {
-    // Check if left mouse button is down (being clicked) LEFT to create and RIGHT to remove.
+    // Check if left mouse button is down (being clicked), LEFT to create and RIGHT to remove.
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
     {
         Vector2 mousePos = GetMousePosition();
@@ -318,12 +318,12 @@ done:
 
     drawStage(grid);
 
-    return IsKeyPressed(KEY_ENTER) == true ? false : true; 
+    return IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE) ? false : true; 
 }
 
 bool endSimulation(char grid[X][Y])
 {
-    if (IsKeyPressed(KEY_ENTER))
+    if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE))
     {
         for (int i = 0; i < X; ++i)
         {
