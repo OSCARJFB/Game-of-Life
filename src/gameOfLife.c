@@ -1,6 +1,9 @@
 /*
-    Writen by: Oscar Bergström
-    https://github.com/OSCARJFB
+	Writen by: Oscar Bergström
+	https://github.com/OSCARJFB
+
+	MIT License
+	Copyright (c) 2023 Oscar Bergström
 */
 
 #include <stdlib.h>
@@ -8,28 +11,34 @@
 #include <stdbool.h>
 #include <time.h>
 #include <raylib.h>
-#include "game_of_life_prototypes.h"
-#include "game_of_life_macros.h"
-#include "game_of_life_enums.h"
+#include <stdint.h>
+#include "gameOfLife.h"
 
-int main(void)
-{
-    windowSetup();
-    runGame();
+static inline bool underPopulation(char[X][Y], int, int);
+static inline bool overPopulation(char[X][Y], int, int);
+static inline bool populate(char[X][Y], int, int);
+static bool startSimulation(char[X][Y]);
+static bool endSimulation(char[X][Y]);
+static void displayMessage(bool);
+static void nextStage(char[X][Y]);
+static void drawStage(char[X][Y]);
+static void updateToNextStage(char[X][Y]);
+static int countCells(char[X][Y], int, int);
 
-    return 0;
-}
-
+/**
+ * Raylib windows setup. 
+ */
 void windowSetup(void)
 {
     const int width = GetScreenWidth(), heigth = GetScreenHeight();
-    const char *title = "Game of Life";
-
-    InitWindow(width, heigth, title);
+    InitWindow(width, heigth, "Game of Life");
     ToggleFullscreen();
     SetTargetFPS(60);
 }
 
+/**
+ * This is the main game loop. 
+ */
 void runGame(void)
 {
     bool startUpMode = true;
@@ -79,7 +88,10 @@ void runGame(void)
     CloseWindow();
 }
 
-void nextStage(char grid[X][Y])
+/**
+ * Set the next stage.
+ */
+static void nextStage(char grid[X][Y])
 {
     // Check each grid before start of a new state.
     for (int i = 0; i < X; ++i)
@@ -110,7 +122,10 @@ void nextStage(char grid[X][Y])
     return;
 }
 
-void updateToNextStage(char grid[X][Y])
+/** 
+ * Update statuses to next stage. 
+ */
+static void updateToNextStage(char grid[X][Y])
 {
     for (int i = 0; i < X; ++i)
     {
@@ -141,28 +156,40 @@ void updateToNextStage(char grid[X][Y])
     return;
 }
 
-bool underPopulation(char grid[X][Y], int y, int x)
+/**
+ * Check state for under population.
+ */
+static inline bool underPopulation(char grid[X][Y], int y, int x)
 {
     // If a cell has less than two neighbours, the cell must die.
     int counted_cells = countCells(grid, y, x);
     return counted_cells < 2 ? true : false;
 }
 
-bool overPopulation(char grid[X][Y], int y, int x)
+/**
+ * Check state for over population.
+ */
+static inline bool overPopulation(char grid[X][Y], int y, int x)
 {
     // Any live cell connected to more than three other live cells it will die of overpopulation.
     int counted_cells = countCells(grid, y, x);
     return counted_cells > 3 ? true : false;
 }
 
-bool populate(char grid[X][Y], int y, int x)
+/**
+ * Check if to populate.
+ */
+static inline bool populate(char grid[X][Y], int y, int x)
 {
     // If a dead cell has three live neighbors it becomes populated.
     int counted_cells = countCells(grid, y, x);
     return counted_cells == 3 ? true : false;
 }
 
-int countCells(char grid[X][Y], int y, int x)
+/**
+ * Cell check. 
+ */
+static int countCells(char grid[X][Y], int y, int x)
 {
     int counter = 0;
 
@@ -202,7 +229,11 @@ int countCells(char grid[X][Y], int y, int x)
     return counter;
 }
 
-void drawStage(char grid[X][Y])
+
+/**
+ * Draw each new state. 
+ */
+static void drawStage(char grid[X][Y])
 {
     int posX = 0, posY = 0;
     const int width = CELL_SIZE, heigth = CELL_SIZE;
@@ -229,7 +260,10 @@ void drawStage(char grid[X][Y])
     }
 }
 
-void displayMessage(bool startUpMode)
+/**
+ * Display instruction message. 
+ */
+static void displayMessage(bool startUpMode)
 {
 
     const char *info_message = "IN START UP MODE: \n"
@@ -241,7 +275,7 @@ void displayMessage(bool startUpMode)
                                "IN ANY MODE: \n"
                                "Press ESC to exit. \n";
 
-    const char regular_message[] = "Help! press and hold F5";
+    const char *regular_message = "Help! press and hold F5";
 
     // Shows / hides help message.
     if (IsKeyDown(KEY_F5))
@@ -265,7 +299,10 @@ void displayMessage(bool startUpMode)
     return;
 }
 
-bool startSimulation(char grid[X][Y])
+/**
+ * Allows for painting the board to start the simulation. 
+ */
+static bool startSimulation(char grid[X][Y])
 {
     // Check if left mouse button is down (being clicked), LEFT to create and RIGHT to remove.
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
@@ -321,6 +358,9 @@ done:
     return IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE) ? false : true; 
 }
 
+/**
+ * End the simulation and reset the board. 
+ */
 bool endSimulation(char grid[X][Y])
 {
     if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE))

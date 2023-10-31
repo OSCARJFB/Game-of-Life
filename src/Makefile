@@ -1,10 +1,19 @@
-# Writen by: Oscar Bergström
-# https://github.com/OSCARJFB
+#	Writen by: Oscar Bergström
+#  	https://github.com/OSCARJFB
+#	
+#	MIT License
+#	Copyright (c) 2023 Oscar Bergström
 
-# Compile code.
-main: game_of_life.c  
-	cc game_of_life.c -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -o GameOfLife
+cc = gcc
+cflags = -Wall -Wextra -Werror -pedantic
+rel = -o3 -march=native -mtune=native -flto -fomit-frame-pointer
+link = -lraylib -lm
 
-# Remove all object files.
+main: 
+	$(cc) main.c gameOfLife.c $(link) $(cflags) -o main.o
+
+release:
+	$(cc) main.c gameOfLife.c $(link) $(rel) -o GameOfLife
+
 clean:
-	rm -rf GameOfLife
+	rm *.o
